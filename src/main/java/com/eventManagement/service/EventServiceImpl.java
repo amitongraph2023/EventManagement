@@ -8,31 +8,54 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.eventManagement.model.Event;
 import com.eventManagement.model.EventType;
 import com.eventManagement.repository.EventRepository;
+import com.eventManagement.util.FileUploadUtil;
 
 @Service
 public class EventServiceImpl implements EventService{
 	
 	private Logger log = LoggerFactory.getLogger(EventServiceImpl.class.getName());
 	
-	public static String uploadImageDir = System.getProperty("user.dir")
+	public static String fileStorageLocation = System.getProperty("user.dir")
 			+ "/src/main/resources/static/img";;
 			
 	@Autowired
 	EventRepository eventRepository;
 	
 	@Override
-	public void createEvent(Event event) {
-		
-		try {
-			eventRepository.save(event);
-			
-		} catch(Exception e) {
-			log.error("Error occurred while saving event");
-		}
+	public void createEvent(Event event) throws Exception {		
+		List<MultipartFile> images = event.getImages();
+	    if (images == null || images.size() == 0) {
+	        throw new Exception("At least one image is required.");
+	    }
+	    if (images.size() > 5) {
+	        throw new Exception("Up to five images can be uploaded.");
+	    }
+	    
+	    for (MultipartFile image : images) {
+	        String imageFormat = image.getContentType();
+	        if (!imageFormat.equals("image/jpeg") && !imageFormat.equals("image/png") && !imageFormat.equals("image/jpg")) {
+	            throw new Exception("Invalid image format. Only JPG, JPEG, and PNG are supported.");
+	        }
+	        
+	        String fileName = StringUtils.cleanPath(image.getOriginalFilename());
+	        String uploadDir = fileStorageLocation;
+	              
+	        try {
+	            FileUploadUtil.saveFile(uploadDir, fileName, image);
+	            if (event.getImageNames() == null) {
+	                event.setImageNames(new ArrayList<>());
+	            }
+	            event.getImageNames().add(fileName);
+	        } catch(Exception e) {
+	            log.error("Error occurred while saving image");
+	        }
+	    }
 	}
 
 	@Override
@@ -45,7 +68,7 @@ public class EventServiceImpl implements EventService{
 		event = new Event(updatedEvent.getEventTitle(), updatedEvent.getStartDate(), updatedEvent.getEndDate(),
 				updatedEvent.getStartTime(), updatedEvent.getEndTime(), updatedEvent.getEventCategory(), 
 				updatedEvent.getEventType(), updatedEvent.getUserType(), updatedEvent.getLocation(), updatedEvent.getAddress(),
-				updatedEvent.getLink(), updatedEvent.getEventDetails(), updatedEvent.getImageName());
+				updatedEvent.getLink(), updatedEvent.getEventDetails(), updatedEvent.getImageNames());
 		
 		try {
 			eventRepository.save(event);

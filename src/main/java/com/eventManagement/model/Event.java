@@ -2,10 +2,24 @@ package com.eventManagement.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "EVENT")
 public class Event {
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer eventId;
+	
 	private String eventTitle;
 	private LocalDate startDate;
     private LocalDate endDate;
@@ -18,7 +32,8 @@ public class Event {
 	private String address;
 	private String link;
 	private String eventDetails;
-	private String imageName;
+	private List<String> imageNames;
+	private List<MultipartFile> images;
 	
 	public Integer getEventId() {
 		return eventId;
@@ -102,20 +117,28 @@ public class Event {
 		this.eventDetails = eventDetails;
 	}
 
-	public String getImageName() {
-		return imageName;
+	public List<String> getImageNames() {
+		return imageNames;
 	}
-	public void setImageName(String imageName) {
-		this.imageName = imageName;
+	public void setImageNames(List<String> imageNames) {
+		this.imageNames = imageNames;
 	}
-		
+	
+	
+	public List<MultipartFile> getImages() {
+		return images;
+	}
+	public void setImages(List<MultipartFile> images) {
+		this.images = images;
+	}
 	public Event() {
 		super();
 	}
 	
+	
 	public Event(String eventTitle, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime,
 			String eventCategory, EventType eventType, UserType userType, String location, String address, String link,
-			String eventDetails, String imageName) {
+			String eventDetails, List<String> imageNames) {
 		super();
 		this.eventTitle = eventTitle;
 		this.startDate = startDate;
@@ -129,8 +152,10 @@ public class Event {
 		this.address = address;
 		this.link = link;
 		this.eventDetails = eventDetails;
-		this.imageName = imageName;
+		this.imageNames = imageNames;
 	}
+	
+	
 	
 	
 	

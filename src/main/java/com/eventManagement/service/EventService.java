@@ -3,14 +3,13 @@ package com.eventManagement.service;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.web.multipart.MultipartFile;
 
 import com.eventManagement.model.Event;
 import com.eventManagement.model.EventType;
 
 public interface EventService {
 
-	public void createEvent(Event event);
+	public void createEvent(Event event) throws Exception;
 	
 	public void updateEvent(int id, Event updatedEvent) throws Exception;
 	

@@ -15,8 +15,6 @@ import com.eventManagement.model.Event;
 import com.eventManagement.model.EventType;
 import com.eventManagement.service.EventService;
 
-
-
 @RestController
 public class EventController {
 
@@ -28,6 +26,7 @@ public class EventController {
 	public ResponseEntity<String> createEvent(@RequestBody Event event) {
 		try {
 			eventService.createEvent(event);
+			
 		} catch (Exception ex) {
 			return ResponseEntity.badRequest().body(ex.getMessage());
 		}
