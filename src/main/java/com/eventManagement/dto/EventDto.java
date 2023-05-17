@@ -1,72 +1,69 @@
-package com.eventManagement.model;
+package com.eventManagement.dto;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
-@Entity
-@Table
-public class Event {
+import com.eventManagement.model.EventType;
+import com.eventManagement.model.UserType;
 
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private Integer eventId;
+public class EventDto {
+
+	@NotBlank(message = "transactionId is null")
+    @Size(min = 2, max = 60)
+	private String adminId;
 	
-	@Column
-	private Long adminId;
-
-	@Column
+	@NotBlank(message = "eventTitle is null")
+    @Size(min = 2, max = 60)
 	private String eventTitle;
 	
-	@Column
+	@NotBlank(message = "startDate is null")
+    @Size(min = 2, max = 60)
 	private String startDate;
 	
-	@Column
+	@NotBlank(message = "endDate is null")
+    @Size(min = 2, max = 60)
     private String endDate;
 	
-	@Column
+	@NotBlank(message = "startTime is null")
+    @Size(min = 2, max = 60)
     private String startTime;
 	
-	@Column
+	@NotBlank(message = "endTime is null")
+    @Size(min = 2, max = 60)
     private String endTime;
 	
-	@Column
+	@NotBlank(message = "eventCategory is null")
+    @Size(min = 2, max = 60)
 	private String eventCategory;
 	
-	@Column
+	@NotBlank(message = "eventType is null")
+    @Size(min = 2, max = 60)
 	private String eventType;
 	
-	@Column
+	@NotBlank(message = "userType is null")
+    @Size(min = 2, max = 60)
 	private String userType;
 	
-	@Column
+	@NotBlank(message = "location is null")
+    @Size(min = 2, max = 60)
 	private String location;
 	
-	@Column
+	@NotBlank(message = "address is null")
+    @Size(min = 2, max = 60)
 	private String address;
 	
-	@Column
+	@NotBlank(message = "link is null")
+    @Size(min = 2, max = 60)
 	private String link;
 	
-	@Column
+	@NotBlank(message = "eventDetails is null")
 	private String eventDetails;
 	
-	@Column
-	private String imageName;
-	
-	public Integer getEventId() {
-		return eventId;
-	}
-	public void setEventId(Integer eventId) {
-		this.eventId = eventId;
-	}
-	public Long getAdminId() {
+	public String getAdminId() {
 		return adminId;
 	}
-	public void setAdminId(Long adminId) {
+	public void setAdminId(String adminId) {
 		this.adminId = adminId;
 	}
 	public String getEventTitle() {
@@ -145,37 +142,5 @@ public class Event {
 		this.eventDetails = eventDetails;
 	}
 
-	public String getImageName() {
-		return imageName;
-	}
-	public void setImageName(String imageName) {
-		this.imageName = imageName;
-	}
-		
-	public Event() {
-		super();
-	}
-	
-	public Event(Long adminId, String eventTitle, String startDate, String endDate, String startTime, String endTime,
-			String eventCategory, String eventType, String userType, String location, String address, String link,
-			String eventDetails, String imageName) {
-		super();
-		this.adminId = adminId;
-		this.eventTitle = eventTitle;
-		this.startDate = startDate;
-		this.endDate = endDate;
-		this.startTime = startTime;
-		this.endTime = endTime;
-		this.eventCategory = eventCategory;
-		this.eventType = eventType;
-		this.userType = userType;
-		this.location = location;
-		this.address = address;
-		this.link = link;
-		this.eventDetails = eventDetails;
-		this.imageName = imageName;
-	}
-	
-	
 	
 }
