@@ -9,89 +9,61 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.eventManagement.dto.EventDto;
 import com.eventManagement.model.Event;
-import com.eventManagement.model.EventType;
 import com.eventManagement.service.EventService;
 
 @RestController
+@RequestMapping("/event")
 public class EventController {
 
-	
 	@Autowired
 	EventService eventService;
-	
+
 	@PostMapping("/createEvent")
-	public ResponseEntity<String> createEvent(@RequestBody Event event) {
+	public ResponseEntity<String> createEvent(@RequestPart("files") MultipartFile[] files,
+			@RequestPart("data") EventDto event) {
+		String response = "";
 		try {
-			eventService.createEvent(event);
-			
+			response = eventService.createEvent(files, event);
 		} catch (Exception ex) {
 			return ResponseEntity.badRequest().body(ex.getMessage());
 		}
-
-		return ResponseEntity.ok().body("SuccessFully Event Created");
-		
+		return ResponseEntity.ok().body(response);
 	}
-	
+
 	@PostMapping("/updateEvent/{id}")
-	public ResponseEntity<String> updateEvent(@PathVariable("id") int id, @RequestBody Event updatedEvent) {
+	public ResponseEntity<String> updateEvent(@PathVariable("id") int id, @RequestPart EventDto updatedEvent,
+			@RequestPart("files") MultipartFile[] files) {
 		try {
-			eventService.updateEvent(id, updatedEvent);
+			eventService.updateEvent(id, updatedEvent, files);
 		} catch (Exception ex) {
 			return ResponseEntity.badRequest().body(ex.getMessage());
 		}
-
 		return ResponseEntity.ok().body("SuccessFully Event Updated");
 	}
-	
-	@GetMapping("/getAllEvent")
-	public ResponseEntity<List<Event>> getAllEvent() {
-		List<Event> eventList = eventService.getAllEvent();
+
+	@GetMapping("/getAllEvent/{adminId}")
+	public ResponseEntity<List<Event>> getAllEvent(@PathVariable("adminId") Long adminId,
+			@RequestParam(value = "eventCategory", defaultValue = "all", required = false) String eventCategory,
+			@RequestParam(value = "eventType", defaultValue = "all", required = false) String eventType,
+			@RequestParam(value = "endDate", defaultValue = "all", required = false) String endDate,
+			@RequestParam(value = "isDashboard", defaultValue = "false", required = false) String isDashboard) {
+
+		List<Event> eventList = eventService.getAllEvent(adminId, eventCategory, eventType, endDate, isDashboard);
 		if (eventList != null) {
 			return ResponseEntity.ok().body(eventList);
 		} else {
 			return ResponseEntity.notFound().build();
 		}
-		
 	}
-	
-	@GetMapping("/getAllEvent/{eventCategory}")
-	public ResponseEntity<List<Event>> getEventByCategory(@PathVariable("eventCategory") String eventCategory) {
-		List<Event> eventList = eventService.getEventByCategory(eventCategory);
-		if (eventList != null) {
-			return ResponseEntity.ok().body(eventList);
-		} else {
-			return ResponseEntity.notFound().build();
-		}
-		
-	}
-	
-	@GetMapping("/getAllEvent/{eventType}")
-	public ResponseEntity<List<Event>> getEventByType(@PathVariable("eventType") EventType eventType) {
-		List<Event> eventList = eventService.getEventByType(eventType);
-		if (eventList != null) {
-			return ResponseEntity.ok().body(eventList);
-		} else {
-			return ResponseEntity.notFound().build();
-		}
-		
-	}
-	
-	@GetMapping("/getAllEvent/{startDate}/{endDate}")
-	public ResponseEntity<List<Event>> getEventByDate(@PathVariable("startDate") LocalDate startDate,
-										@PathVariable("endDate") LocalDate endDate) {
-		
-	    List<Event> eventList = eventService.getEventsByDateRange(startDate, endDate);
-		if (eventList != null) {
-			return ResponseEntity.ok().body(eventList);
-		} else {
-			return ResponseEntity.notFound().build();
-		}
-		
-	}
-	
+
 	@GetMapping("/searchEvent/{title}")
 	public ResponseEntity<List<Event>> searchEvent(@PathVariable("title") String title) {
 		List<Event> eventList = eventService.searchEvent(title);
@@ -101,8 +73,5 @@ public class EventController {
 			return ResponseEntity.notFound().build();
 		}
 	}
-	
 
-
-	
 }
