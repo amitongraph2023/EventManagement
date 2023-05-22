@@ -82,7 +82,7 @@ public class EventController {
 			@RequestParam(value = "eventCategory", defaultValue = "all", required = false) String eventCategory,
 			@RequestParam(value = "eventType", defaultValue = "all", required = false) String eventType,
 			@RequestParam(value = "eventDate", defaultValue = "all", required = false) String eventDate,
-			@RequestParam(value = "isDashboard", defaultValue = "false", required = false) String isDashboard,
+			@RequestParam(value = "isDashboard", required = false) boolean isDashboard,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "size", defaultValue = "0") int size) {
 
@@ -143,7 +143,7 @@ public class EventController {
 		}
 	}
 	
-	@GetMapping("/exportEvents/{eventId}")
+	@GetMapping("/exportEventUsers/{eventId}")
 	public ResponseEntity<?> exportEventRegisterUsers(@PathVariable("eventId") Long eventId, HttpServletResponse response){
 		try {
 			List<EventUsers> eventUserList = eventService.getEventRegisterUsers(eventId);
@@ -169,7 +169,7 @@ public class EventController {
 	
 	private void generateExportFile(List<EventUsers> eventList, HttpServletResponse response) throws IOException {
 
-		response.setHeader("Content-Disposition", "attachment; filename=\"EventHistory.csv\"");
+		response.setHeader("Content-Disposition", "attachment; filename=\"EventUsersHistory.csv\"");
 		response.setContentType("text/csv");
 
 		CSVWriter csvWriter = new CSVWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8));

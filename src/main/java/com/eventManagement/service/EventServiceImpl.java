@@ -125,9 +125,11 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	public List<Event> getAllEvent(Long adminId, String eventCategory, String eventType, String eventDate,
-			String isDashboard, int page, int size) {
-
-		List<Event> eventList = eventFilter.filterEvents(adminId, eventCategory, eventType, eventDate, isDashboard,
+			boolean isDashboard, int page, int size) {
+		
+		Date dateOfEvent = (eventDate.equals("all")) ? new Date() : getEventDate(eventDate, isDashboard);
+		
+		List<Event> eventList = eventFilter.filterEvents(adminId, eventCategory, eventType, dateOfEvent, isDashboard,
 				page, size);
 
 		if (eventList != null) {
@@ -135,10 +137,7 @@ public class EventServiceImpl implements EventService {
 			for (Event event : eventList) {
 				String[] images = event.getImageName().split(",");
 				for (String str : images) {
-					// str = str.replace("\\", "/");
 					str = projectlocalPath + "\\" + str;
-					// str = str.replace("//", "/");
-					// str = str.replace("\\", "/");
 					images[i] = str;
 					i++;
 				}
@@ -153,6 +152,17 @@ public class EventServiceImpl implements EventService {
 		}
 
 		return eventList;
+	}
+
+	private Date getEventDate(String eventDate, boolean isDashboard) {
+		Date date = null;
+		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        try {
+        	date = sdf.parse(eventDate);
+        } catch (Exception e) {
+        	logger.error("Error occure while parsing date: {}", e);
+		}
+		return date;
 	}
 
 	@Override
