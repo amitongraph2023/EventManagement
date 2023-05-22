@@ -6,10 +6,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,19 +25,29 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.eventManagement.dto.EventDto;
+import com.eventManagement.dto.EventUsersDto;
 import com.eventManagement.model.Event;
-import com.eventManagement.model.EventType;
+import com.eventManagement.model.EventUsers;
 import com.eventManagement.repository.EventRepository;
+import com.eventManagement.repository.EventUsersRepository;
 
 @Service
 public class EventServiceImpl implements EventService {
 
 	private Logger logger = LoggerFactory.getLogger(EventServiceImpl.class.getName());
+	SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
-	public static String uploadImageDir = System.getProperty("user.dir") + "/src/main/resources/static/img";;
+	// public static String uploadImageDir = System.getProperty("user.dir") +
+	// "/src/main/resources/static/img";
+	public static String projectlocalPath = System.getProperty("user.dir");
+
+	public static String localPath = "D://EventManagment//EventManagement//";
 
 	@Autowired
 	EventRepository eventRepository;
+
+	@Autowired
+	EventUsersRepository eventUsersRepository;
 
 	@Autowired
 	EventFilter eventFilter;
@@ -41,20 +57,8 @@ public class EventServiceImpl implements EventService {
 		// need a method to validate eventDto
 		try {
 			Event event = new Event();
-			event.setAddress(eventDto.getAddress());
-			event.setEndDate(eventDto.getEndDate());
-			event.setEndTime(eventDto.getEndTime());
-			event.setEventCategory(eventDto.getEventCategory());
-			event.setEventDetails(eventDto.getEventDetails());
-			event.setEventTitle(eventDto.getEventTitle());
-			event.setEventType(eventDto.getEventType());
-			event.setLink(eventDto.getLink());
-			event.setLocation(eventDto.getLocation());
-			event.setStartDate(eventDto.getStartDate());
-			event.setStartDate(eventDto.getStartDate());
-			event.setStartTime(eventDto.getStartDate());
-			event.setUserType(eventDto.getUserType());
 
+			event = parseEvent(event, eventDto);
 			List<String> imageNames = saveFileInSystem(files);
 
 			StringBuilder sb = new StringBuilder();
@@ -62,44 +66,27 @@ public class EventServiceImpl implements EventService {
 				sb.append(s).append(",");
 			}
 			sb.deleteCharAt(sb.length() - 1);
-			
+
 			event.setImageName(sb.toString());
-			String imgName = imageNames.stream().collect(Collectors.joining());
-			event.setImageName(imgName);
+			event.setCreatedOn(sdf.parse(sdf.format(new Date())));
 
 			eventRepository.save(event);
 		} catch (Exception ex) {
-			logger.error("Error occurred while saving event");
-			return "Error got while saving event";
+			logger.error("Error occurred while saving event : " + ex.getMessage());
+			return "Error got while saving event : " + ex.getMessage();
 		}
-
 		return "Successfully saved event";
 	}
 
 	@Override
-	public void updateEvent(int id, EventDto eventDto, MultipartFile[] files) throws Exception {
+	public String updateEvent(Long id, EventDto eventDto, MultipartFile[] files) throws Exception {
 
 		try {
-
 			Event event = eventRepository.findById(id).get();
 			if (event == null) {
 				throw new Exception("Event not found");
 			}
-			event.setAdminId(Long.parseLong(eventDto.getAdminId()));
-			event.setAddress(eventDto.getAddress());
-			event.setEndDate(eventDto.getEndDate());
-			event.setEndTime(eventDto.getEndTime());
-			event.setEventCategory(eventDto.getEventCategory());
-			event.setEventDetails(eventDto.getEventDetails());
-			event.setEventTitle(eventDto.getEventTitle());
-			event.setEventType(eventDto.getEventType());
-			event.setLink(eventDto.getLink());
-
-			event.setLocation(eventDto.getLocation());
-			event.setStartDate(eventDto.getStartDate());
-			event.setStartTime(eventDto.getStartDate());
-			event.setUserType(eventDto.getUserType());
-
+			event = parseEvent(event, eventDto);
 			List<String> imageNames = saveFileInSystem(files);
 
 			StringBuilder sb = new StringBuilder();
@@ -107,22 +94,63 @@ public class EventServiceImpl implements EventService {
 				sb.append(s).append(",");
 			}
 			sb.deleteCharAt(sb.length() - 1);
-			
 			event.setImageName(sb.toString());
-
+			event.setLastUpdated(sdf.parse(sdf.format(new Date())));
 			eventRepository.save(event);
 
-		} catch (Exception e) {
-			logger.error("Error occurred while saving event");
+		} catch (Exception ex) {
+			logger.error("Error occurred while saving event : " + ex.getMessage());
+			return "Error got while updating event : " + ex.getMessage();
 		}
+		return "Successfully updated event";
 
 	}
 
-	@Override
-	public List<Event> getAllEvent(Long adminId, String eventCategory, String eventType, String endDate,
-			String isDashboard) {
+	private Event parseEvent(Event event, EventDto eventDto) throws ParseException {
 
-		List<Event> eventList = eventFilter.filterEvents(adminId, eventCategory, eventType, endDate, isDashboard);
+		event.setAdminId(Long.parseLong(eventDto.getAdminId()));
+		event.setAddress(eventDto.getAddress());
+		event.setStartDate(sdf.parse(sdf.format((sdf.parse(eventDto.getStartDate())))));
+		event.setEndDate(sdf.parse(sdf.format((sdf.parse(eventDto.getEndDate())))));
+		event.setEventCategory(eventDto.getEventCategory());
+		event.setEventDetails(eventDto.getEventDetails());
+		event.setEventTitle(eventDto.getEventTitle());
+		event.setEventType(eventDto.getEventType());
+		event.setLink(eventDto.getLink());
+
+		event.setLocation(eventDto.getLocation());
+		event.setUserType(eventDto.getUserType());
+		return event;
+	}
+
+	@Override
+	public List<Event> getAllEvent(Long adminId, String eventCategory, String eventType, String eventDate,
+			String isDashboard, int page, int size) {
+
+		List<Event> eventList = eventFilter.filterEvents(adminId, eventCategory, eventType, eventDate, isDashboard,
+				page, size);
+
+		if (eventList != null) {
+			int i = 0;
+			for (Event event : eventList) {
+				String[] images = event.getImageName().split(",");
+				for (String str : images) {
+					// str = str.replace("\\", "/");
+					str = projectlocalPath + "\\" + str;
+					// str = str.replace("//", "/");
+					// str = str.replace("\\", "/");
+					images[i] = str;
+					i++;
+				}
+				i = 0;
+				StringBuilder sb = new StringBuilder();
+				for (String s : images) {
+					sb.append(s).append(",");
+				}
+				sb.deleteCharAt(sb.length() - 1);
+				event.setImageName(sb.toString());
+			}
+		}
 
 		return eventList;
 	}
@@ -133,11 +161,9 @@ public class EventServiceImpl implements EventService {
 		title = "%" + title.toLowerCase() + "%";
 		try {
 			eventList = eventRepository.findEventByTitle(title);
-
 		} catch (Exception e) {
 			logger.error("Error occurred while fetching event");
 		}
-
 		return eventList;
 	}
 
@@ -159,5 +185,80 @@ public class EventServiceImpl implements EventService {
 		}
 		return fileNames;
 
+	}
+
+	@Override
+	public Event getEvent(Long eventId) {
+
+		Event event = null;
+		try {
+			event = eventRepository.findById(eventId).get();
+			String str = event.getImageName();
+			str = str.replace("\\", "/");
+			str = projectlocalPath + str;
+			str = str.replace("//", "/");
+			event.setImageName(str);
+			return event;
+		} catch (Exception ex) {
+			logger.error("Exception got fetching event by id : " + eventId);
+		}
+		return null;
+	}
+
+	@Override
+	public String registerEventUser(@Valid EventUsersDto eventUsersDto) {
+		String response = "";
+
+		try {
+			Optional<Event> event = eventRepository.findById(eventUsersDto.getEventId());
+			if (event.isPresent()) {
+				EventUsers eventUser = eventUsersRepository.findByEventByUserId(eventUsersDto.getUserId(),
+						eventUsersDto.getEventId());
+				if (eventUser != null && eventUser.getUserId() == eventUsersDto.getUserId()) {
+					response = "User already registered in event";
+					return response;
+				}
+				eventUser = parseEventUser(eventUsersDto);
+				eventUser.setCreatedOn(sdf.parse(sdf.format(new Date())));
+				eventUsersRepository.save(eventUser);
+				response = "Successfully register user for event";
+			} else {
+				response = "no such event exists";
+				return response;
+			}
+		} catch (Exception ex) {
+			response = ex.getMessage();
+			logger.error("Exception got while saving event user : " + ex.getMessage());
+			return response;
+		}
+		return response;
+	}
+
+	@Override
+	public List<EventUsers> getEventRegisterUsers(Long eventId) {
+		List<EventUsers> eventUserList = new ArrayList<>();
+		Optional<Event> event = eventRepository.findById(eventId);
+		if (event.isPresent()) {
+			eventUserList = eventUsersRepository.findAllEventByEventId(eventId);
+		} else {
+			logger.error("No such event Exists");
+		}
+		return eventUserList;
+	}
+
+	public EventUsers parseEventUser(EventUsersDto eventUsersDto) {
+
+		EventUsers eventUsers = new EventUsers();
+		eventUsers.setAdminId(eventUsersDto.getAdminId());
+		eventUsers.setEmail(eventUsersDto.getEmail());
+		eventUsers.setEventId(eventUsersDto.getEventId());
+		eventUsers.setName(eventUsersDto.getName());
+		eventUsers.setPhoneNo(eventUsersDto.getName());
+		eventUsers.setRegistrationDate(eventUsersDto.getRegistrationDate());
+		eventUsers.setRegistrationId(eventUsersDto.getRegistrationId());
+		eventUsers.setUserId(eventUsersDto.getUserId());
+		eventUsers.setUserType(eventUsersDto.getUserType());
+
+		return eventUsers;
 	}
 }

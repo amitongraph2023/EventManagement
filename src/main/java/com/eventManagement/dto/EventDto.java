@@ -1,15 +1,12 @@
 package com.eventManagement.dto;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import com.eventManagement.model.EventType;
-import com.eventManagement.model.UserType;
 
 public class EventDto {
 
-	@NotBlank(message = "transactionId is null")
+	@NotBlank(message = "adminId is null")
     @Size(min = 2, max = 60)
 	private String adminId;
 	
@@ -24,14 +21,6 @@ public class EventDto {
 	@NotBlank(message = "endDate is null")
     @Size(min = 2, max = 60)
     private String endDate;
-	
-	@NotBlank(message = "startTime is null")
-    @Size(min = 2, max = 60)
-    private String startTime;
-	
-	@NotBlank(message = "endTime is null")
-    @Size(min = 2, max = 60)
-    private String endTime;
 	
 	@NotBlank(message = "eventCategory is null")
     @Size(min = 2, max = 60)
@@ -86,18 +75,7 @@ public class EventDto {
 	public void setEndDate(String endDate) {
 		this.endDate = endDate;
 	}
-	public String getStartTime() {
-		return startTime;
-	}
-	public void setStartTime(String startTime) {
-		this.startTime = startTime;
-	}
-	public String getEndTime() {
-		return endTime;
-	}
-	public void setEndTime(String endTime) {
-		this.endTime = endTime;
-	}
+	
 	public String getEventCategory() {
 		return eventCategory;
 	}
